@@ -69,4 +69,3 @@ export type NewNoteData = {
   content: string;
   tag: NoteTag;
 };
-
