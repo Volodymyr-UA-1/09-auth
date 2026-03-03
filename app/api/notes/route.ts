@@ -7,7 +7,9 @@ import { logErrorResponse } from '../_utils/utils';
 
 export async function GET(request: NextRequest) {
   try {
+
     const cookieStore = await cookies();
+    const accessToken = cookieStore.get('accessToken')?.value;
     const search = request.nextUrl.searchParams.get('search') ?? '';
     const page = Number(request.nextUrl.searchParams.get('page') ?? 1);
     const rawTag = request.nextUrl.searchParams.get('tag') ?? '';
@@ -21,6 +23,7 @@ export async function GET(request: NextRequest) {
         ...(tag && { tag }),
       },
       headers: {
+        'Authorization': `Bearer ${accessToken}`,
         Cookie: cookieStore.toString(),
       },
     });

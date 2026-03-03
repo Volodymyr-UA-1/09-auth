@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/store/authStore';
-import css from './Profile.module.css'; // Переконайтеся, що назва файлу стилів збігається
+import css from './ProfilePage.module.css'
 
 export default function ProfilePage() {
   const { user } = useAuthStore();

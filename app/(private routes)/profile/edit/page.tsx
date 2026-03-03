@@ -1,39 +1,52 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAuthStore } from '@/lib/store/authStore';
-import { api } from '@/lib/api/api'; // або clientApi, якщо ви винесли PATCH туди
+import { api } from '@/lib/api/api'; 
 import css from './EditProfilePage.module.css';
 
 export default function EditProfilePage() {
   const router = useRouter();
   const { user, setUser } = useAuthStore();
   
-  // Ініціалізуємо стан поточним ім'ям користувача
   const [username, setUsername] = useState(user?.username || '');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Синхронізація інпуту при першому завантаженні (F5)
+  useEffect(() => {
+    if (user?.username && !username) {
+      setUsername(user.username);
+    }
+  }, [user, username]);
+
+  // ЛОГІКА ЗБЕРЕЖЕННЯ (Save)
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    if (!username.trim() || username === user?.username) return;
 
+    setIsSubmitting(true);
     try {
-      // Згідно з ТЗ, ми оновлюємо профіль через PATCH /users/me
+      // Відправляємо запит на бекенд
       const response = await api.patch('/users/me', { username });
       
-      // Оновлюємо дані в нашому Zustand сторі
+      // Оновлюємо глобальний стан користувача
       setUser(response.data);
       
-      // Повертаємося на сторінку профілю
+      // Автоматичний редірект на профіль
       router.push('/profile');
     } catch (error) {
-      console.error('Failed to update profile:', error);
+      console.error('Update failed:', error);
       alert('Помилка при оновленні профілю');
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
+  };
+
+  // ЛОГІКА СКАСУВАННЯ (Cancel)
+  const handleCancel = () => {
+    router.push('/profile');
   };
 
   return (
@@ -41,16 +54,19 @@ export default function EditProfilePage() {
       <div className={css.profileCard}>
         <h1 className={css.formTitle}>Edit Profile</h1>
         
-        <Image
-          src={user?.avatar || '/default-avatar.png'}
-          alt="User Avatar"
-          width={120}
-          height={120}
-          className={css.avatar}
-        />
+        <div className={css.avatarWrapper}>
+          <Image
+            src={user?.avatar || '/default-avatar.png'}
+            alt="User Avatar"
+            width={120}
+            height={120}
+            className={css.avatar}
+            unoptimized
+          />
+        </div>
 
         <form onSubmit={handleSave} className={css.profileInfo}>
-          <div className={css.usernameWrapper}>
+          <div className={css.inputGroup}>
             <label htmlFor="username">Username</label>
             <input
               id="username"
@@ -59,25 +75,28 @@ export default function EditProfilePage() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
+              disabled={isSubmitting}
             />
           </div>
 
-          <p>Email: {user?.email}</p>
+          <div className={css.emailGroup}>
+            <p>Email (cannot be changed): <strong>{user?.email}</strong></p>
+          </div>
 
           <div className={css.actions}>
             <button 
               type="submit" 
               className={css.saveButton} 
-              disabled={isLoading}
+              disabled={isSubmitting || username === user?.username}
             >
-              {isLoading ? 'Saving...' : 'Save'}
+              {isSubmitting ? 'Saving...' : 'Save'}
             </button>
             
             <button 
               type="button" 
               className={css.cancelButton} 
-              onClick={() => router.back()}
-              disabled={isLoading}
+              onClick={handleCancel}
+              disabled={isSubmitting}
             >
               Cancel
             </button>

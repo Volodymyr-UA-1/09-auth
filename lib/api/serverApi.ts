@@ -1,44 +1,42 @@
 import axios from 'axios';
 import { cookies } from 'next/headers';
 import { User } from '@/types/user';
-import { Note } from '@/types/note';
 
-// Пряма адреса бекенду GoIT для сервера
 const SERVER_URL = 'https://notehub-public.goit.study/api';
+
+// Експортуємо axiosInstance для proxy (виправляє помилку image_629563.jpg)
+export const axiosInstance = axios.create({
+  baseURL: SERVER_URL,
+  withCredentials: true,
+});
 
 const getServerApi = async () => {
   const cookieStore = await cookies();
-  const token = cookieStore.get('token')?.value;
+  const token = cookieStore.get('accessToken')?.value;
 
   return axios.create({
     baseURL: SERVER_URL,
     headers: {
-      Authorization: `Bearer ${token}`,
+      Authorization: token ? `Bearer ${token}` : '',
     },
   });
 };
 
 export const fetchNotes = async (params: any) => {
-  const api = await getServerApi();
-  const { data } = await api.get('/notes', { params });
-  return data;
-};
-
-export const fetchNoteById = async (id: string): Promise<Note> => {
-  const api = await getServerApi();
-  const res = await api.get(`/notes/${id}`);
-  return res.data;
-};
-
-export const getMe = async (): Promise<User> => {
-  const api = await getServerApi();
-  const res = await api.get('/users/me');
-  return res.data;
-};
-
-export const checkSession = async (): Promise<User | null> => {
   try {
-    return await getMe();
+    const api = await getServerApi();
+    const { data } = await api.get('/notes', { params });
+    return data;
+  } catch (error) {
+    return { notes: [], totalPages: 0 };
+  }
+};
+
+// Повертаємо повний response для proxy (виправляє помилку image_62965e.jpg)
+export const checkSession = async () => {
+  try {
+    const api = await getServerApi();
+    return await api.get('/auth/session');
   } catch {
     return null;
   }
