@@ -1,11 +1,11 @@
-import axios from "axios";
-import type { Note, NoteTag } from "@/types/note"
 
+import axios from "axios";
+import type { Note, NoteTag } from "@/types/note";
+
+// 1. Звертаємося до твого ВЛАСНОГО API (Route Handlers)
+// Це автоматично вирішить проблему з токенами, бо ми дістаємо їх із кук на сервері
 const api = axios.create({
-  baseURL: "https://notehub-public.goit.study/api",
-  headers: {
-    Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTEHUB_TOKEN}`, // свій токен
-  },
+  baseURL: "/api", 
 });
 
 export interface FetchNotesResponse {
@@ -20,25 +20,29 @@ export interface FetchNotesParams {
   tag?: string;
 }
 
+// 2. Отримання нотатки за ID
+// Використовується на сторінці детального перегляду
 export const fetchNoteById = async (id: string): Promise<Note> => {
   const res = await api.get<Note>(`/notes/${id}`);
   return res.data;
 };
 
-//  Створити нову нотатку
+// 3. Створити нову нотатку
 export const createNote = async (
-  noteData: Omit<Note, "id" | "createdAt" | "updatedAt">,
+  noteData: Omit<Note, "id" | "createdAt" | "updatedAt">
 ): Promise<Note> => {
+  // Твій Route Handler у /api/notes/route.ts додасть Bearer токен
   const { data } = await api.post<Note>("/notes", noteData);
   return data;
 };
 
-
-//  Видалити нотатку за ID
+// 4. Видалити нотатку за ID
 export const deleteNote = async (id: string): Promise<Note> => {
   const { data } = await api.delete<Note>(`/notes/${id}`);
   return data;
 };
+
+// 5. Отримання списку нотаток з фільтрами
 export const fetchNotes = async ({
   search = "",
   page = 1,
@@ -46,14 +50,14 @@ export const fetchNotes = async ({
   tag,
 }: FetchNotesParams): Promise<FetchNotesResponse> => {
   
-  // Створюємо об'єкт параметрів
   const queryParams: any = {
     search,
     page,
     perPage,
   };
 
-  if (tag && tag !== "all") {
+  // Логіка для тегів (ігноруємо "all" або "All", щоб отримати всі нотатки)
+  if (tag && tag.toLowerCase() !== "all") {
     queryParams.tag = tag;
   }
 
@@ -63,7 +67,7 @@ export const fetchNotes = async ({
 
   return data;
 };
-//відправка даних на сервер
+
 export type NewNoteData = {
   title: string;
   content: string;

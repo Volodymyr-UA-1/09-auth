@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 
 import { fetchNotes, FetchNotesResponse } from "@/lib/api";
+
 import NoteList from "@/components/NoteList/NoteList";
 import Pagination from "@/components/Pagination/Pagination";
 import EmptyState from "@/components/EmptyState/EmptyState";
@@ -71,7 +72,7 @@ export default function NotesClient({ initialTag }: NotesClientProps) {
           />
         )}
 
-        <Link href="/notes/action/create" className={css.button}>
+        <Link href="/notes/create" className={css.button}>
           Create note +
         </Link>
       </header>

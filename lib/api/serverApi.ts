@@ -1,42 +1,43 @@
-import axios from 'axios';
-import { cookies } from 'next/headers';
-import { User } from '@/types/user';
+import axios from "axios";
+import { cookies } from "next/headers";
 
-const SERVER_URL = 'https://notehub-public.goit.study/api';
-
-// Експортуємо axiosInstance для proxy (виправляє помилку image_629563.jpg)
-export const axiosInstance = axios.create({
-  baseURL: SERVER_URL,
-  withCredentials: true,
-});
-
-const getServerApi = async () => {
+const getServerInstance = async () => {
   const cookieStore = await cookies();
-  const token = cookieStore.get('accessToken')?.value;
+  const accessToken = cookieStore.get("accessToken")?.value;
 
   return axios.create({
-    baseURL: SERVER_URL,
-    headers: {
-      Authorization: token ? `Bearer ${token}` : '',
-    },
+    baseURL: process.env.NEXT_PUBLIC_API_URL + "/api",
+    headers: accessToken
+      ? {
+          Authorization: `Bearer ${accessToken}`,
+        }
+      : {},
   });
 };
 
 export const fetchNotes = async (params: any) => {
-  try {
-    const api = await getServerApi();
-    const { data } = await api.get('/notes', { params });
-    return data;
-  } catch (error) {
-    return { notes: [], totalPages: 0 };
-  }
+  const instance = await getServerInstance();
+  const { data } = await instance.get("/notes", { params });
+  return data;
 };
 
-// Повертаємо повний response для proxy (виправляє помилку image_62965e.jpg)
+export const fetchNoteById = async (id: string) => {
+  const instance = await getServerInstance();
+  const { data } = await instance.get(`/notes/${id}`);
+  return data;
+};
+
+export const getMe = async () => {
+  const instance = await getServerInstance();
+  const { data } = await instance.get("/users/me");
+  return data;
+};
+
 export const checkSession = async () => {
   try {
-    const api = await getServerApi();
-    return await api.get('/auth/session');
+    const instance = await getServerInstance();
+    const { data } = await instance.get("/auth/session");
+    return data || null;
   } catch {
     return null;
   }

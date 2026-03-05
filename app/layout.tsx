@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Header from "@/components/Header/Header";
 import Footer from "@/components/Footer/Footer";
 import TanStackProvider from '@/components/TanStackProvider/TanStackProvider';
-import AuthProvider from '@/components/AuthProvider/AuthProvider'; // Додаємо імпорт
+import AuthProvider from "@/components/AuthProvider/AuthProvider";
 import "./globals.css";
 import { Roboto } from 'next/font/google';
 

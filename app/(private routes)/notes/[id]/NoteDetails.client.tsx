@@ -3,12 +3,17 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchNoteById } from '@/lib/api';
 import css from './NoteDetails.module.css';
 import EmptyState from '@/components/EmptyState/EmptyState';
+import { notFound } from 'next/navigation';
 
 interface NoteDetailsClientProps {
   id: string;
 }
 
 export default function NoteDetailsClient({ id }: NoteDetailsClientProps) {
+  
+  if (id === "create") {
+    notFound();
+  }
   const { data: note, isLoading, error } = useQuery({
     queryKey: ['note', id],
     queryFn: () => fetchNoteById(id),

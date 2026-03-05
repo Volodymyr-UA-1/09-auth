@@ -4,99 +4,87 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAuthStore } from '@/lib/store/authStore';
-import { api } from '@/lib/api/api'; 
+import { updateMe, getMe } from '@/lib/api/clientApi';
 import css from './EditProfilePage.module.css';
 
 export default function EditProfilePage() {
   const router = useRouter();
   const { user, setUser } = useAuthStore();
-  
-  const [username, setUsername] = useState(user?.username || '');
+
+  const [username, setUsername] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Синхронізація інпуту при першому завантаженні (F5)
   useEffect(() => {
-    if (user?.username && !username) {
+    if (user?.username) {
       setUsername(user.username);
     }
-  }, [user, username]);
+  }, [user]);
 
-  // ЛОГІКА ЗБЕРЕЖЕННЯ (Save)
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!username.trim() || username === user?.username) return;
 
     setIsSubmitting(true);
+
     try {
-      // Відправляємо запит на бекенд
-      const response = await api.patch('/users/me', { username });
-      
-      // Оновлюємо глобальний стан користувача
-      setUser(response.data);
-      
-      // Автоматичний редірект на профіль
+      await updateMe({ username });
+
+      const freshUser = await getMe();
+      setUser(freshUser);
+
       router.push('/profile');
-    } catch (error) {
-      console.error('Update failed:', error);
-      alert('Помилка при оновленні профілю');
+
+    } catch {
+      alert('Update error');
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  // ЛОГІКА СКАСУВАННЯ (Cancel)
-  const handleCancel = () => {
-    router.push('/profile');
   };
 
   return (
     <main className={css.mainContent}>
       <div className={css.profileCard}>
         <h1 className={css.formTitle}>Edit Profile</h1>
-        
+
         <div className={css.avatarWrapper}>
           <Image
             src={user?.avatar || '/default-avatar.png'}
-            alt="User Avatar"
+            alt="Avatar"
             width={120}
             height={120}
             className={css.avatar}
-            unoptimized
           />
         </div>
 
         <form onSubmit={handleSave} className={css.profileInfo}>
-          <div className={css.inputGroup}>
-            <label htmlFor="username">Username</label>
+          <div className={css.usernameWrapper}>
+            <label>Username</label>
+
             <input
-              id="username"
-              type="text"
               className={css.input}
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-              disabled={isSubmitting}
+              onChange={e => setUsername(e.target.value)}
             />
           </div>
 
-          <div className={css.emailGroup}>
-            <p>Email (cannot be changed): <strong>{user?.email}</strong></p>
-          </div>
+          <p>
+            Email: <strong>{user?.email}</strong>
+          </p>
 
           <div className={css.actions}>
-            <button 
-              type="submit" 
-              className={css.saveButton} 
-              disabled={isSubmitting || username === user?.username}
+            <button
+              type="submit"
+              className={css.saveButton}
+              disabled={isSubmitting}
             >
               {isSubmitting ? 'Saving...' : 'Save'}
             </button>
-            
-            <button 
-              type="button" 
-              className={css.cancelButton} 
-              onClick={handleCancel}
-              disabled={isSubmitting}
+
+            <button
+              type="button"
+              className={css.cancelButton}
+              onClick={() => router.push('/profile')}
             >
               Cancel
             </button>

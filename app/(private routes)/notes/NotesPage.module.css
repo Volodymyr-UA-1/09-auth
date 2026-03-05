@@ -1,0 +1,39 @@
+.mainContent {
+    padding: 40px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.createButton {
+    padding: 10px 18px;
+    background: #0d6efd;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+}
+
+.notesList {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.noteItem {
+    padding: 16px;
+    border-radius: 10px;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.tag {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 4px 10px;
+    background: #eef2ff;
+    border-radius: 6px;
+}
