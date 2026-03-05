@@ -1,9 +1,10 @@
 'use client';
 import { useQuery } from '@tanstack/react-query';
-import { fetchNoteById } from '@/lib/api';
+
 import css from './NoteDetails.module.css';
 import EmptyState from '@/components/EmptyState/EmptyState';
 import { notFound } from 'next/navigation';
+import { fetchNoteById } from '@/lib/api/serverApi';
 
 interface NoteDetailsClientProps {
   id: string;

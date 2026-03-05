@@ -1,6 +1,7 @@
 import { QueryClient, dehydrate, HydrationBoundary } from '@tanstack/react-query';
-import { fetchNoteById } from '@/lib/api';
+
 import NotePreviewClient from "./NotePreview.client";
+import { fetchNoteById } from '@/lib/api/serverApi';
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   // 1. Очікуємо id (Next.js 15 Server Component)

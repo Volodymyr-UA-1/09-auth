@@ -1,11 +1,12 @@
 'use client';
 import css from "./NoteList.module.css";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { deleteNote } from "@/lib/api";
+
 import { useState } from "react";
 import type { Note } from "../../types/note";
 import { useRouter } from "next/navigation";
 import EmptyState from "../EmptyState/EmptyState";
+import { deleteNote } from "@/lib/api/clientApi";
 
 
 interface NoteListProps {

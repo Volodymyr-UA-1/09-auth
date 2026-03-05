@@ -1,5 +1,7 @@
 import axios from "axios";
-import { cookies } from "next/headers";
+import { cookies } from "next/dist/server/request/cookies";
+
+
 
 const getServerInstance = async () => {
   const cookieStore = await cookies();
