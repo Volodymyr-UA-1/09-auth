@@ -4,7 +4,7 @@ import { parse } from 'cookie';
 import { checkSession } from './lib/api/serverApi';
 
 const privateRoutes = ['/profile', '/notes'];
-const authRoutes = ['/sign-in', '/sign-up']; // Додано масив публічних маршрутів
+const authRoutes = ['/sign-in', '/sign-up'];
 
 export async function proxy(request: NextRequest) {
   const cookieStore = await cookies();
@@ -15,23 +15,24 @@ export async function proxy(request: NextRequest) {
   const isPrivateRoute = privateRoutes.some((route) => pathname.startsWith(route));
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
 
-  // 1. ЛОГІКА ДЛЯ ПУБЛІЧНИХ МАРШРУТІВ (Sign-in / Sign-up)
+  // 1. ЛОГІКА ДЛЯ ПУБЛІЧНИХ МАРШРУТІВ
   if (isAuthRoute) {
     if (accessToken) {
-      // Якщо залогінений — на головну
       return NextResponse.redirect(new URL('/', request.url));
     }
-    // Якщо не залогінений — дозволяємо доступ (просто пропускаємо далі)
     return NextResponse.next();
   }
 
-  // 2. ЛОГІКА ДЛЯ ПРИВАТНИХ МАРШРУТІВ (існувала раніше)
+  // 2. ЛОГІКА ДЛЯ ПРИВАТНИХ МАРШРУТІВ
   if (isPrivateRoute && !accessToken) {
     if (refreshToken) {
       try {
         const apiResponse = await checkSession();
         if (apiResponse && apiResponse.headers['set-cookie']) {
-          const response = NextResponse.next();
+          
+          // ВИПРАВЛЕНО: Створюємо редирект замість .next()
+          const response = NextResponse.redirect(request.url);
+          
           const setCookieHeader = apiResponse.headers['set-cookie'];
           const cookieArray = Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader];
 
@@ -52,6 +53,8 @@ export async function proxy(request: NextRequest) {
               }
             }
           });
+          
+          // Повертаємо редирект із вшитими куками
           return response;
         }
       } catch (err) {
