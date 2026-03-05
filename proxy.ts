@@ -17,7 +17,7 @@ export async function proxy(request: NextRequest) {
     if (refreshToken) {
       try {
         const apiResponse = await checkSession();
-if (apiResponse && apiResponse.headers['set-cookie']) {
+        if (apiResponse && apiResponse.headers['set-cookie']) {
           const response = NextResponse.next();
           const setCookieHeader = apiResponse.headers['set-cookie'];
           const cookieArray = Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader];
@@ -28,7 +28,6 @@ if (apiResponse && apiResponse.headers['set-cookie']) {
 
             if (entries.length > 0) {
               const [cName, cValue] = entries[0];
-              // Перевірка типу для усунення помилки 2345
               if (cName && typeof cValue === 'string') {
                 response.cookies.set(cName, cValue, {
                   path: parsed.Path || '/',
@@ -52,6 +51,12 @@ if (apiResponse && apiResponse.headers['set-cookie']) {
   return NextResponse.next();
 }
 
+// ОСНОВНА ЗМІНА ТУТ:
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.png$).*)'],
+  matcher: [
+    '/profile/:path*', 
+    '/notes/:path*', 
+    '/sign-in', 
+    '/sign-up'
+  ],
 };

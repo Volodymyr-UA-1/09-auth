@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { useState } from "react";
 import type { Note } from "../../types/note";
-import { useRouter } from "next/navigation";
+import Link from "next/link"; // 1. ВИПРАВЛЕНО: Імпорт Link
 import EmptyState from "../EmptyState/EmptyState";
 import { deleteNote } from "@/lib/api/clientApi";
 
@@ -15,7 +15,6 @@ interface NoteListProps {
 
 export default function NoteList({ notes }: NoteListProps) {
   const queryClient = useQueryClient();
-  const router = useRouter();
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const { mutate } = useMutation({
@@ -41,13 +40,14 @@ export default function NoteList({ notes }: NoteListProps) {
           <div className={css.footer}>
             <span className={css.tag}>{note.tag}</span>
             <div className={css.actions}>
-              {/* Прямий шлях активує перехоплення (..)(..)notes */}
-              <button
+              
+              {/* 2. ВИПРАВЛЕНО: Заміна кнопки з router.push на Link */}
+              <Link 
+                href={`/notes/${note.id}`} 
                 className={css.detailsLink}
-                onClick={() => router.push(`/notes/${note.id}`)}
               >
                 View Details
-              </button>
+              </Link>
 
               <button
                 className={css.button}

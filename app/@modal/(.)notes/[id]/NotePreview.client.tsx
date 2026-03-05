@@ -5,7 +5,8 @@ import { useQuery } from '@tanstack/react-query';
 
 import Modal from '@/components/Modal/Modal';
 import css from './NotePreview.client.module.css';
-import { fetchNoteById } from '@/lib/api/serverApi';
+// ВИПРАВЛЕНО: Використовуємо clientApi для клієнтського компонента
+import { fetchNoteById } from '@/lib/api/clientApi';
 
 interface NotePreviewClientProps {
   id: string;
@@ -16,10 +17,12 @@ export default function NotePreviewClient({ id }: NotePreviewClientProps) {
   const handleClose = () => router.back();
 
   const { data: note, isLoading, isError } = useQuery({
+    // Ключ має бути ідентичним тому, що ми використовували в NoteDetails
+    // Це дозволяє Next.js підхопити дані, якщо вони вже були в кеші
     queryKey: ['note', id],
     queryFn: () => fetchNoteById(id),
-    // Додаємо це налаштування сюди, як і в NoteDetailsClient
-    refetchOnMount: false, 
+    refetchOnMount: false,
+    staleTime: 60 * 1000, // Дані вважаються свіжими протягом 1 хвилини
   });
 
   return (
@@ -41,7 +44,10 @@ export default function NotePreviewClient({ id }: NotePreviewClientProps) {
             <div className={css.footer}>
               <div className={css.tag}>{note.tag}</div>
               <div className={css.date}>
-                {new Date(note.createdAt).toLocaleDateString()}
+                {/* Безпечна обробка дати */}
+                {note.createdAt 
+                  ? new Date(note.createdAt).toLocaleDateString() 
+                  : 'No date'}
               </div>
             </div>
           </div>

@@ -1,10 +1,11 @@
 'use client';
-import { useQuery } from '@tanstack/react-query';
 
+import { useQuery } from '@tanstack/react-query';
 import css from './NoteDetails.module.css';
 import EmptyState from '@/components/EmptyState/EmptyState';
 import { notFound } from 'next/navigation';
-import { fetchNoteById } from '@/lib/api/serverApi';
+// ВИПРАВЛЕНО: Імпортуємо саме з clientApi для роботи у браузері
+import { fetchNoteById } from '@/lib/api/clientApi';
 
 interface NoteDetailsClientProps {
   id: string;
@@ -12,16 +13,22 @@ interface NoteDetailsClientProps {
 
 export default function NoteDetailsClient({ id }: NoteDetailsClientProps) {
   
+  // Перевірка на "create" для уникнення некоректних запитів
   if (id === "create") {
     notFound();
   }
+
   const { data: note, isLoading, error } = useQuery({
+    // Ключ має збігатися з ключем для prefetchQuery на сервері
     queryKey: ['note', id],
     queryFn: () => fetchNoteById(id),
+    // refetchOnMount: false дозволяє використовувати дані, 
+    // завантажені сервером (hydration), без повторного запиту
     refetchOnMount: false,
+    staleTime: 60 * 1000,
   });
 
-  if (isLoading) return <p>Loading...</p>;
+  if (isLoading) return <p className={css.loading}>Loading...</p>;
 
   if (error || !note) {
     const message = error instanceof Error ? error.message : 'Note not found';
@@ -36,9 +43,12 @@ export default function NoteDetailsClient({ id }: NoteDetailsClientProps) {
         </div>
         <p className={css.tag}>{note.tag}</p>
         <p className={css.content}>{note.content}</p>
-        <p className={css.date}>
-          {new Date(note.createdAt).toLocaleString()}
-        </p>
+        <div className={css.footer}>
+          <p className={css.date}>
+            {/* Використовуємо optional chaining для безпеки */}
+            {note.createdAt ? new Date(note.createdAt).toLocaleString() : 'Date unknown'}
+          </p>
+        </div>
       </div>
     </div>
   );

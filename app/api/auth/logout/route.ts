@@ -7,25 +7,29 @@ import { logErrorResponse } from '../../_utils/utils';
 export async function POST() {
   try {
     const cookieStore = await cookies();
-    const accessToken = cookieStore.get('accessToken')?.value;
 
-    if (accessToken) {
-      // Бекенд вимагає Bearer токен для виходу
-      await api.post('/auth/logout', null, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        },
-      });
-    }
+    const accessToken = cookieStore.get('accessToken')?.value;
+    const refreshToken = cookieStore.get('refreshToken')?.value;
+
+    await api.post('auth/logout', null, {
+      headers: {
+        Cookie: `accessToken=${accessToken}; refreshToken=${refreshToken}`,
+      },
+    });
+
+    cookieStore.delete('accessToken');
+    cookieStore.delete('refreshToken');
+
+    return NextResponse.json({ message: 'Logged out successfully' }, { status: 200 });
   } catch (error) {
     if (isAxiosError(error)) {
       logErrorResponse(error.response?.data);
+      return NextResponse.json(
+        { error: error.message, response: error.response?.data },
+        { status: error.status }
+      );
     }
-  } finally {
-    // Куки видаляємо у будь-якому випадку, щоб користувач вийшов локально
-    const response = NextResponse.json({ message: 'Logged out' }, { status: 200 });
-    response.cookies.delete('accessToken');
-    response.cookies.delete('refreshToken');
-    return response;
+    logErrorResponse({ message: (error as Error).message });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

@@ -1,26 +1,25 @@
-'use client';
-
-import { useEffect } from 'react';
+import { Metadata } from 'next'; // Імпорт типу Metadata
 import Image from 'next/image';
 import Link from 'next/link';
-import { useAuthStore } from '@/lib/store/authStore';
-import { getMe } from '@/lib/api/clientApi';
+import { getMe } from '@/lib/api/serverApi'; // ВИПРАВЛЕНО: Використовуємо серверний API
 import css from './ProfilePage.module.css';
 
-export default function ProfilePage() {
-  const { user, setUser } = useAuthStore();
+// 1. Додаємо метадані (вимога завдання)
+export const metadata: Metadata = {
+  title: 'Profile | My App',
+  description: 'User profile page',
+};
 
-  // Sync with backend
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const freshUser = await getMe();
-        setUser(freshUser);
-      } catch {}
-    };
-
-    loadUser();
-  }, []);
+// 2. Компонент тепер асинхронний серверний компонент
+export default async function ProfilePage() {
+  // 3. Отримуємо дані безпосередньо на сервері
+  let user = null;
+  try {
+    user = await getMe();
+  } catch (error) {
+    // У разі помилки можна редиректити або показати повідомлення
+    console.error("Failed to fetch user:", error);
+  }
 
   return (
     <main className={css.mainContent}>
@@ -46,11 +45,11 @@ export default function ProfilePage() {
 
         <div className={css.profileInfo}>
           <p>
-            <strong>Username:</strong> {user?.username}
+            <strong>Username:</strong> {user?.username || 'Guest'}
           </p>
 
           <p>
-            <strong>Email:</strong> {user?.email}
+            <strong>Email:</strong> {user?.email || 'N/A'}
           </p>
         </div>
       </div>

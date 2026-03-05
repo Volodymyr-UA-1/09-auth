@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useDebounce } from "use-debounce"; // 1. Імпортуємо дебаунс
 import Link from "next/link";
 
 import NoteList from "@/components/NoteList/NoteList";
@@ -10,8 +11,6 @@ import EmptyState from "@/components/EmptyState/EmptyState";
 import SearchBox from "@/components/SearchBox/SearchBox";
 
 import { fetchNotes } from "@/lib/api/clientApi";
-import { Note } from "@/types/note";
-
 import css from "./Notes.client.module.css";
 
 const perPage = 12;
@@ -25,7 +24,10 @@ export default function NotesClient({ initialTag }: Props) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
 
-  // Reset filters when tag changes
+  // 2. Створюємо дебаунс-значення (затримка 500мс)
+  const [debouncedSearch] = useDebounce(search, 500);
+
+  // Скидаємо фільтри при зміні тегу
   useEffect(() => {
     setPage(1);
     setSearch("");
@@ -34,14 +36,15 @@ export default function NotesClient({ initialTag }: Props) {
   const activeTag = VALID_TAGS.includes(initialTag) ? initialTag : "";
 
   const { data, isLoading, isError, isFetching } = useQuery({
-    queryKey: ["notes", initialTag, page, search],
+    // 3. Використовуємо debouncedSearch у ключі та функції
+    queryKey: ["notes", initialTag, page, debouncedSearch],
 
     queryFn: () =>
       fetchNotes({
         tag: activeTag,
         page,
         perPage,
-        search,
+        search: debouncedSearch,
       }),
 
     placeholderData: (prev) => prev,
@@ -50,15 +53,15 @@ export default function NotesClient({ initialTag }: Props) {
 
   const handlePageChange = (newPage: number) => {
     if (!data) return;
-
-    if (newPage >= 1 && newPage <= data.totalPages) {
+    // Припускаємо, що API повертає totalPages
+    if (newPage >= 1 && newPage <= (data as any).totalPages) {
       setPage(newPage);
     }
   };
 
   const handleSearch = (value: string) => {
-    setSearch(value);
-    setPage(1);
+    setSearch(value); // Стан інпуту оновлюється миттєво для відображення букв
+    setPage(1);       // Але запит піде тільки через 500мс завдяки debouncedSearch
   };
 
   return (
@@ -66,15 +69,16 @@ export default function NotesClient({ initialTag }: Props) {
       <header className={css.toolbar}>
         <SearchBox onSearch={handleSearch} initialValue={search} />
 
-        {data && data.totalPages > 1 && (
+        {data && (data as any).totalPages > 1 && (
           <Pagination
             page={page}
-            totalPages={data.totalPages}
+            totalPages={(data as any).totalPages}
             onPageChange={handlePageChange}
           />
         )}
 
-        <Link href="/notes/create" className={css.button}>
+        {/* 4. ВИПРАВЛЕНО: Правильний шлях для створення нотатки */}
+        <Link href="/notes/action/create" className={css.button}>
           Create note +
         </Link>
       </header>
