@@ -34,7 +34,6 @@ export const getMe = async (): Promise<User> => {
   return data;
 };
 
-// ВИПРАВЛЕНО: Додано типізацію повернення Promise<User>
 export const updateMe = async (data: { username: string }): Promise<User> => {
   const { data: response } = await api.patch<User>('/users/me', data);
   return response;
@@ -47,9 +46,9 @@ export const fetchNotes = (params: FetchNotesParams): Promise<{ notes: Note[]; t
 export const fetchNoteById = (id: string): Promise<Note> =>
   api.get<Note>(`/notes/${id}`).then(res => res.data);
 
-// ВИПРАВЛЕНО: Замінено Partial<Note> на конкретні поля (title, content, tag)
 export const createNote = (data: { title: string; content: string; tag: string }): Promise<Note> =>
   api.post<Note>('/notes', data).then(res => res.data);
 
-export const deleteNote = (id: string): Promise<void> =>
-  api.delete(`/notes/${id}`).then(res => res.data);
+// ВИПРАВЛЕНО: Тепер повертає Promise<Note> замість Promise<void>
+export const deleteNote = (id: string): Promise<Note> =>
+  api.delete<Note>(`/notes/${id}`).then(res => res.data);

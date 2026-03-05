@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { api } from "./api"; // Використовуємо ваш існуючий екземпляр
+import { api } from "./api";
 import { User } from "@/types/user";
 import { Note } from "@/types/note";
 import { AxiosResponse } from "axios";
@@ -12,16 +12,15 @@ interface FetchNotesParams {
 }
 
 /**
- * Допоміжна функція для отримання заголовків авторизації на сервері
+ * Допоміжна функція для отримання заголовків на сервері.
+ * Тепер передає ТІЛЬКИ Cookie, як того вимагає специфікація завдання.
  */
 const getAuthHeaders = async () => {
   const cookieStore = await cookies();
-  const accessToken = cookieStore.get("accessToken")?.value;
-  const refreshToken = cookieStore.get("refreshToken")?.value;
   
-  // Об'єднуємо токен та всі куки для коректної роботи сесії
   return {
-    Authorization: accessToken ? `Bearer ${accessToken}` : "",
+    // ВИПРАВЛЕНО: Видалено заголовок Authorization. 
+    // Всі токени вже містяться всередині cookieStore.toString()
     Cookie: cookieStore.toString(),
   };
 };
@@ -47,8 +46,8 @@ export const getMe = async (): Promise<User> => {
   return data;
 };
 
-// ВИПРАВЛЕНО: Повертає повний AxiosResponse, як того вимагає інструкція
 export const checkSession = async (): Promise<AxiosResponse<User>> => {
   const headers = await getAuthHeaders();
+  // Повертаємо повний об'єкт AxiosResponse
   return api.get<User>("/auth/session", { headers });
 };

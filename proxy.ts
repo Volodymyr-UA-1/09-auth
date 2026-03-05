@@ -4,6 +4,7 @@ import { parse } from 'cookie';
 import { checkSession } from './lib/api/serverApi';
 
 const privateRoutes = ['/profile', '/notes'];
+const authRoutes = ['/sign-in', '/sign-up']; // Додано масив публічних маршрутів
 
 export async function proxy(request: NextRequest) {
   const cookieStore = await cookies();
@@ -12,7 +13,19 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const isPrivateRoute = privateRoutes.some((route) => pathname.startsWith(route));
+  const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
 
+  // 1. ЛОГІКА ДЛЯ ПУБЛІЧНИХ МАРШРУТІВ (Sign-in / Sign-up)
+  if (isAuthRoute) {
+    if (accessToken) {
+      // Якщо залогінений — на головну
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+    // Якщо не залогінений — дозволяємо доступ (просто пропускаємо далі)
+    return NextResponse.next();
+  }
+
+  // 2. ЛОГІКА ДЛЯ ПРИВАТНИХ МАРШРУТІВ (існувала раніше)
   if (isPrivateRoute && !accessToken) {
     if (refreshToken) {
       try {
@@ -51,7 +64,6 @@ export async function proxy(request: NextRequest) {
   return NextResponse.next();
 }
 
-// ОСНОВНА ЗМІНА ТУТ:
 export const config = {
   matcher: [
     '/profile/:path*', 
